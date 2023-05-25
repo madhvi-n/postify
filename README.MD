@@ -2,8 +2,20 @@
 
 A Django application to create posts which utilizes Graphql
 
+
+## Features
+- Users can create, edit, and delete posts.
+- Users can create, edit, and delete comments on posts.
+- Users can archive a post.
+- Users can feature a post.
+- Users can disable comments on their posts.
+- Users can add categories to their posts.
+- Users can add tags to their posts.
+
+
 ## Requirements
 - Python 3.8+
+
 
 ## Installation
 - Clone the repository and enter the root directory
