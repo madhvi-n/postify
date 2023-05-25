@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'graphene_django',
     'corsheaders',
     'posts',
+    'comments',
 ]
 
 MIDDLEWARE = [
@@ -101,7 +102,7 @@ DATABASES = {
 }
 
 GRAPHENE = {
-    'SCHEMA': 'posts.schema.schema',
+    'SCHEMA': 'posts.schema.schema, comments.schema.schema',
 }
 
 # Password validation
