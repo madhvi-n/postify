@@ -1,9 +1,12 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql.error import GraphQLError
-from .models import Post, Tag, Category
+from posts.models import Post, Tag, Category
 from django.contrib.auth.models import User
 from django.db.models import Q
+from comments.schema import CommentType
+from profiles.schema import UserType
+
 
 class TagType(DjangoObjectType):
     class Meta:
@@ -17,24 +20,20 @@ class CategoryType(DjangoObjectType):
         fields = ('id', 'name')
 
 
-class UserType(DjangoObjectType):
-    class Meta:
-        model = User
-        fields = ('id', 'username', 'first_name', 'last_name')
-
-
 class PostType(DjangoObjectType):
+    content = graphene.String()
+    author_id = graphene.Int()
+    author = graphene.Field(UserType)
+    comments = graphene.Field(CommentType)
+
     class Meta:
         model = Post
         fields = (
             'id', 'title', 'content', 'author', 'author_id', 'published',
             'comments_enabled', 'is_archived', 'is_featured', 'created_at',
-            'updated_at', 'slug',
+            'updated_at', 'slug', 'comments',
         )
 
-    content = graphene.String()
-    author_id = graphene.Int()
-    author = graphene.Field(UserType)
 
     def resolve_content(self, info):
         return self.content
@@ -46,6 +45,9 @@ class PostType(DjangoObjectType):
         if self.author_id:
             return User.objects.get(id=self.author_id)
         return None
+
+    def resolve_comments(self, info):
+        return self.comments.all()
 
 
 class PostCreateUpdateInput(graphene.InputObjectType):
@@ -63,6 +65,7 @@ class Query(graphene.ObjectType):
         author_username=graphene.String(),
         search=graphene.String()
     )
+    post = graphene.Field(PostType, id=graphene.ID(required=True))
 
     def resolve_posts(self, info, published=None, author_username=None, search=None):
         queryset = Post.objects.all()
@@ -79,6 +82,13 @@ class Query(graphene.ObjectType):
             )
 
         return queryset
+
+    def resolve_post(self, info, id):
+        try:
+            post = Post.objects.get(id=id)
+            return post
+        except Post.DoesNotExist:
+            raise GraphQLError('Post not found')
 
 
 class PostCreateMutation(graphene.Mutation):
@@ -151,7 +161,6 @@ class PostDeleteMutation(graphene.Mutation):
         id = graphene.ID(required=True)
 
     def mutate(self, info, id):
-
         try:
             user = info.context.user
             if not user.is_authenticated:
@@ -241,6 +250,7 @@ class AddPostTagMutation(graphene.Mutation):
         except Tag.DoesNotExist:
             raise GraphQLError('Tag not found')
 
+
 class DeletePostTagMutation(graphene.Mutation):
     tag = graphene.Field(TagType)
 
@@ -249,13 +259,13 @@ class DeletePostTagMutation(graphene.Mutation):
         tag_id = graphene.ID(required=True)
 
     def mutate(self, info, id, tag_id):
+        user = info.context.user
+        if not user.is_authenticated:
+            raise GraphQLError('User is not authenticated')
         try:
-            user = info.context.user
-            if not user.is_authenticated:
-                raise GraphQLError('User is not authenticated')
             post = Post.objects.get(id=id)
             tag = Tag.objects.get(id=tag_id)
-            if tag_id in post.tags.values_list('id'):
+            if tag_id not in post.tags.all():
                 raise GraphQLError('Tag does not exist in post')
             post.tags.remove(tag)
             return DeletePostTagMutation(success=True)
@@ -273,10 +283,10 @@ class AddPostCategoryMutation(graphene.Mutation):
         category_id = graphene.ID(required=True)
 
     def mutate(self, info, id, category_id):
+        user = info.context.user
+        if not user.is_authenticated:
+            raise GraphQLError('User is not authenticated')
         try:
-            user = info.context.user
-            if not user.is_authenticated:
-                raise GraphQLError('User is not authenticated')
             post = Post.objects.get(id=id)
             category = Category.objects.get(id=category_id)
             post.category = category
@@ -286,6 +296,7 @@ class AddPostCategoryMutation(graphene.Mutation):
             raise GraphQLError('Post not found')
         except Category.DoesNotExist:
             raise GraphQLError('Category not found')
+
 
 class Mutation(graphene.ObjectType):
     create_post = PostCreateMutation.Field()
