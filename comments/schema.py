@@ -17,12 +17,9 @@ class CommentType(DjangoObjectType):
         model = Comment
         fields = ('id', 'author', 'author_id', 'post', 'comment',)
 
-    content = graphene.String()
     author_id = graphene.Int()
     author = graphene.Field(UserType)
 
-    def resolve_content(self, info):
-        return self.content
 
     def resolve_author_id(self, info):
         return self.author_id
@@ -40,7 +37,7 @@ class CommentCreateUpdateInput(graphene.InputObjectType):
 
 
 class Query(graphene.ObjectType):
-    posts = graphene.List(
+    comments = graphene.List(
         CommentType,
         post_id=graphene.Int(required=True)
     )
