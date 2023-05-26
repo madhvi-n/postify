@@ -12,7 +12,6 @@ A Django application to create posts which utilizes Graphql
 - Users can add categories to their posts.
 - Users can add tags to their posts.
 
-
 ## Requirements
 - Python 3.8+
 
@@ -41,7 +40,7 @@ A Django application to create posts which utilizes Graphql
 
 - Create a python superuser account
   ```
-  python manage.py createsuperiser
+  python manage.py createsuperuser
   ```
 
 - Start your Django server
