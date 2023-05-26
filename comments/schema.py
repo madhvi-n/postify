@@ -58,7 +58,7 @@ class CommentCreateMutation(graphene.Mutation):
     def mutate(root, info, input=None):
         user = info.context.user
         if not user.is_authenticated:
-            raise GraphQLError('User is not authorized')
+            raise GraphQLError('User is not authenticated')
 
         title = input.title
         comment_text = input.comment
@@ -79,7 +79,7 @@ class CommentCreateMutation(graphene.Mutation):
         return CommentCreateMutation(comment=comment)
 
 
-class PostDeleteMutation(graphene.Mutation):
+class CommentDeleteMutation(graphene.Mutation):
     success = graphene.Boolean()
 
     class Arguments:
@@ -88,7 +88,7 @@ class PostDeleteMutation(graphene.Mutation):
     def mutate(self, info, id):
         user = info.context.user
         if not user.is_authenticated:
-            raise GraphQLError('User is not authorized')
+            raise GraphQLError('User is not authenticated')
 
         comment = Comment.objects.get(id=id)
         if comment is None:
@@ -102,9 +102,9 @@ class PostDeleteMutation(graphene.Mutation):
 
 
 class Mutation(graphene.ObjectType):
-    create_comment = PostCreateMutation.Field()
-    update_comment = PostUpdateMutation.Field()
-    delete_comment = PostDeleteMutation.Field()
+    create_comment = CommentCreateMutation.Field()
+    update_comment = CommentUpdateMutation.Field()
+    delete_comment = CommentDeleteMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
