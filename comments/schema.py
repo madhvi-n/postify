@@ -1,9 +1,10 @@
 import graphene
 from graphene_django import DjangoObjectType
 from graphql.error import GraphQLError
-from .models import Post, Tag, Category
 from django.contrib.auth.models import User
 from django.db.models import Q
+from .models import Comment
+
 
 class UserType(DjangoObjectType):
     class Meta:
@@ -13,9 +14,8 @@ class UserType(DjangoObjectType):
 
 class CommentType(DjangoObjectType):
     class Meta:
-        model = Tag
+        model = Comment
         fields = ('id', 'author', 'author_id', 'post', 'comment',)
-
 
     content = graphene.String()
     author_id = graphene.Int()
@@ -70,7 +70,7 @@ class CommentCreateMutation(graphene.Mutation):
         except User.DoesNotExist:
             raise GraphQLError('Author not found.')
 
-        post = Post.objects.create(
+        comment = Comment.objects.create(
             comment=comment_text,
             author=author,
             content=content,
@@ -103,7 +103,7 @@ class CommentDeleteMutation(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     create_comment = CommentCreateMutation.Field()
-    update_comment = CommentUpdateMutation.Field()
+    # update_comment = CommentUpdateMutation.Field()
     delete_comment = CommentDeleteMutation.Field()
 
 
