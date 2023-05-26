@@ -4,6 +4,7 @@ from graphql.error import GraphQLError
 from django.contrib.auth.models import User
 from django.db.models import Q
 from .models import Comment
+from posts.models import Post
 
 
 class UserType(DjangoObjectType):
@@ -30,10 +31,15 @@ class CommentType(DjangoObjectType):
         return None
 
 
-class CommentCreateUpdateInput(graphene.InputObjectType):
+class CommentCreateInput(graphene.InputObjectType):
     comment = graphene.String(required=True)
     author = graphene.ObjectType()
     author_id = graphene.ID(required=True)
+    post_id = graphene.ID(required=True)
+
+class CommentUpdateInput(graphene.InputObjectType):
+    comment = graphene.String(required=True)
+    comment_id = graphene.ID(required=True)
 
 
 class Query(graphene.ObjectType):
@@ -50,30 +56,54 @@ class CommentCreateMutation(graphene.Mutation):
     comment = graphene.Field(CommentType)
 
     class Arguments:
-        input = CommentCreateUpdateInput(required=True)
+        input = CommentCreateInput(required=True)
 
-    def mutate(root, info, input=None):
+    def mutate(self, info, input=None):
         user = info.context.user
         if not user.is_authenticated:
             raise GraphQLError('User is not authenticated')
 
-        title = input.title
         comment_text = input.comment
         author_id = input.author_id
-
-        author = None
+        post_id = input.post_id
         try:
             author = User.objects.get(id=author_id)
+            post = Post.objects.get(id=post_id)
+            comment = Comment.objects.create(
+                comment=comment_text,
+                author=author,
+                post=post
+            )
+            return CommentCreateMutation(comment=comment)
         except User.DoesNotExist:
             raise GraphQLError('Author not found.')
+        except Post.DoesNotExist:
+            raise GraphQLError('Post not found')
 
-        comment = Comment.objects.create(
-            comment=comment_text,
-            author=author,
-            content=content,
-            published=True
-        )
-        return CommentCreateMutation(comment=comment)
+
+class CommentUpdateMutation(graphene.Mutation):
+    comment = graphene.Field(CommentType)
+
+    class Arguments:
+        input = CommentUpdateInput(required=True)
+
+    def mutate(self, info, input=None):
+        user = info.context.user
+        if not user.is_authenticated:
+            raise GraphQLError('User is not authenticated')
+
+        comment_text = input.comment
+        comment_id = input.comment_id
+        try:
+            comment = Comment.objects.get(id=comment_id)
+            if comment.author != user:
+                raise GraphQLError('User is not the author of the comment')
+                
+            comment.comment = comment_text
+            comment.save()
+            return CommentUpdateMutation(comment=comment)
+        except Comment.DoesNotExist:
+            raise GraphQLError('Comment not found.')
 
 
 class CommentDeleteMutation(graphene.Mutation):
@@ -100,7 +130,7 @@ class CommentDeleteMutation(graphene.Mutation):
 
 class Mutation(graphene.ObjectType):
     create_comment = CommentCreateMutation.Field()
-    # update_comment = CommentUpdateMutation.Field()
+    update_comment = CommentUpdateMutation.Field()
     delete_comment = CommentDeleteMutation.Field()
 
 
