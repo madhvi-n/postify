@@ -21,14 +21,11 @@ class CommentType(DjangoObjectType):
     author_id = graphene.Int()
     author = graphene.Field(UserType)
 
-
     def resolve_author_id(self, info):
         return self.author_id
 
     def resolve_author(self, info):
-        if self.author_id:
-            return User.objects.get(id=self.author_id)
-        return None
+        return self.author
 
 
 class CommentCreateInput(graphene.InputObjectType):
@@ -36,6 +33,7 @@ class CommentCreateInput(graphene.InputObjectType):
     author = graphene.ObjectType()
     author_id = graphene.ID(required=True)
     post_id = graphene.ID(required=True)
+
 
 class CommentUpdateInput(graphene.InputObjectType):
     comment = graphene.String(required=True)
@@ -98,7 +96,7 @@ class CommentUpdateMutation(graphene.Mutation):
             comment = Comment.objects.get(id=comment_id)
             if comment.author != user:
                 raise GraphQLError('User is not the author of the comment')
-                
+
             comment.comment = comment_text
             comment.save()
             return CommentUpdateMutation(comment=comment)

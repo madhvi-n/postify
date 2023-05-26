@@ -21,22 +21,19 @@ class CategoryType(DjangoObjectType):
 
 
 class PostType(DjangoObjectType):
-    content = graphene.String()
     author_id = graphene.Int()
     author = graphene.Field(UserType)
-    comments = graphene.Field(CommentType)
+    comments = graphene.List(CommentType)
+    tags = graphene.List(TagType)
+    category = graphene.Field(TagType)
 
     class Meta:
         model = Post
         fields = (
             'id', 'title', 'content', 'author', 'author_id', 'published',
             'comments_enabled', 'is_archived', 'is_featured', 'created_at',
-            'updated_at', 'slug', 'comments',
+            'updated_at', 'slug', 'comments', 'tags', 'category'
         )
-
-
-    def resolve_content(self, info):
-        return self.content
 
     def resolve_author_id(self, info):
         return self.author_id
@@ -48,6 +45,12 @@ class PostType(DjangoObjectType):
 
     def resolve_comments(self, info):
         return self.comments.all()
+
+    def resolve_tags(self, info):
+        return self.tags.all()
+
+    def resolve_category(self, info):
+        return self.category
 
 
 class PostCreateUpdateInput(graphene.InputObjectType):
@@ -65,6 +68,8 @@ class Query(graphene.ObjectType):
         author_username=graphene.String(),
         search=graphene.String()
     )
+    categories = graphene.List(CategoryType)
+    tags = graphene.List(TagType)
     post = graphene.Field(PostType, id=graphene.ID(required=True))
 
     def resolve_posts(self, info, published=None, author_username=None, search=None):
@@ -89,6 +94,12 @@ class Query(graphene.ObjectType):
             return post
         except Post.DoesNotExist:
             raise GraphQLError('Post not found')
+
+    def resolve_categories(self, info):
+        return Category.objects.all()
+
+    def resolve_tags(self, info):
+        return Tag.objects.all()
 
 
 class PostCreateMutation(graphene.Mutation):
@@ -233,15 +244,15 @@ class AddPostTagMutation(graphene.Mutation):
     tag = graphene.Field(TagType)
 
     class Arguments:
-        id  = graphene.ID(required=True)
+        post_id  = graphene.ID(required=True)
         tag_id = graphene.ID(required=True)
 
-    def mutate(self, info, id, tag_id):
+    def mutate(self, info, post_id, tag_id):
         try:
             user = info.context.user
             if not user.is_authenticated:
                 raise GraphQLError('User is not authenticated')
-            post = Post.objects.get(id=id)
+            post = Post.objects.get(id=post_id)
             tag = Tag.objects.get(id=tag_id)
             post.tags.add(tag)
             return AddPostTagMutation(tag=tag)
@@ -255,15 +266,15 @@ class DeletePostTagMutation(graphene.Mutation):
     tag = graphene.Field(TagType)
 
     class Arguments:
-        id  = graphene.ID(required=True)
+        post_id  = graphene.ID(required=True)
         tag_id = graphene.ID(required=True)
 
-    def mutate(self, info, id, tag_id):
+    def mutate(self, info, post_id, tag_id):
         user = info.context.user
         if not user.is_authenticated:
             raise GraphQLError('User is not authenticated')
         try:
-            post = Post.objects.get(id=id)
+            post = Post.objects.get(id=post_id)
             tag = Tag.objects.get(id=tag_id)
             if tag_id not in post.tags.all():
                 raise GraphQLError('Tag does not exist in post')
@@ -279,15 +290,15 @@ class AddPostCategoryMutation(graphene.Mutation):
     category = graphene.Field(CategoryType)
 
     class Arguments:
-        id  = graphene.ID(required=True)
+        post_id  = graphene.ID(required=True)
         category_id = graphene.ID(required=True)
 
-    def mutate(self, info, id, category_id):
+    def mutate(self, info, post_id, category_id):
         user = info.context.user
         if not user.is_authenticated:
             raise GraphQLError('User is not authenticated')
         try:
-            post = Post.objects.get(id=id)
+            post = Post.objects.get(id=post_id)
             category = Category.objects.get(id=category_id)
             post.category = category
             post.save()
