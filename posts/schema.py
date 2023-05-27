@@ -240,6 +240,25 @@ class PostTogglePublishMutation(graphene.Mutation):
             return GraphQLError('Post not found.')
 
 
+class ToggleCommentsEnabledMutation(graphene.Mutation):
+    success = graphene.Boolean()
+
+    class Arguments:
+        id = graphene.ID(required=True)
+
+    def mutate(self, info, id):
+        try:
+            user = info.context.user
+            if not user.is_authenticated:
+                raise GraphQLError('User is not authenticated')
+            post = Post.objects.get(id=id)
+            post.comments_enabled = not post.comments_enabled
+            post.save()
+            return ToggleCommentsEnabledMutation(success=True)
+        except Post.DoesNotExist:
+            return GraphQLError('Post not found.')
+
+
 class AddPostTagMutation(graphene.Mutation):
     tag = graphene.Field(TagType)
 
@@ -320,6 +339,7 @@ class Mutation(graphene.ObjectType):
     delete_post_tag = DeletePostTagMutation.Field()
     add_post_category = AddPostCategoryMutation.Field()
     update_post_category = AddPostCategoryMutation.Field()
+    toggle_comments_enabled = ToggleCommentsEnabledMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

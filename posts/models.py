@@ -28,7 +28,7 @@ class Post(models.Model):
             self.slug = slugify(self.title)
 
         if Post.objects.filter(slug=self.slug).exists():
-            count = Post.objects.filter(slug__startswith=self.slug).count()
+            count = Post.objects.filter(title__startswith=self.title).count()
             self.slug = f"{slugify(self.title)}-{count}"
         super().save(*args, **kwargs)
 
