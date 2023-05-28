@@ -5,12 +5,7 @@ from django.contrib.auth.models import User
 from django.db.models import Q
 from .models import Comment
 from posts.models import Post
-
-
-class UserType(DjangoObjectType):
-    class Meta:
-        model = User
-        fields = ("id", "username", "first_name", "last_name")
+from profiles.schema import UserType
 
 
 class CommentType(DjangoObjectType):
