@@ -1,4 +1,5 @@
 # Postify
+[![Django CI](https://github.com/madhvi-n/postify/actions/workflows/django.yml/badge.svg)](https://github.com/madhvi-n/postify/actions/workflows/django.yml)
 
 A Django application to create posts which utilizes Graphql
 
