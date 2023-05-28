@@ -1,11 +1,14 @@
 import posts.schema
 import comments.schema
+import profiles.schema
+
 import graphene
 import graphql_jwt
 
 class Query(
     posts.schema.Query,
     comments.schema.Query,
+    profiles.schema.Query,
     graphene.ObjectType):
     pass
 
@@ -13,6 +16,7 @@ class Query(
 class Mutation(
     posts.schema.Mutation,
     comments.schema.Mutation,
+    profiles.schema.Mutation,
     graphene.ObjectType):
     token_auth = graphql_jwt.ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
