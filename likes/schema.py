@@ -66,7 +66,7 @@ class PostLikeCreateMutation(graphene.Mutation):
         try:
             post = Post.objects.get(id=post_id)
             user = User.objects.get(id=user_id)
-            post_like = PostLike.objects.get_or_create(post=post, user=user)
+            post_like, created = PostLike.objects.get_or_create(post=post, user=user)
             return PostLikeCreateMutation(like=post_like)
         except User.DoesNotExist:
             raise GraphQLError("User not found")
@@ -78,17 +78,15 @@ class PostLikeRemoveMutation(graphene.Mutation):
     success = graphene.Boolean()
 
     class Arguments:
-        post_id = graphene.Int(required=True)
-        user_id = graphene.Int(required=True)
+        like_id = graphene.Int(required=True)
 
-    def mutate(self, info, post_id, user_id):
+    def mutate(self, info, like_id):
         user = info.context.user
         if not user.is_authenticated:
             raise GraphQLError("User is not authenticated")
 
         try:
-            user = User.objects.get(id=user_id)
-            post_like = PostLike.objects.get(post__id=post_id, user__id=user_id)
+            post_like = PostLike.objects.get(id=like_id)
             if user != post_like.user:
                 raise GraphQLError("Bad Request. User has not liked this post")
             post_like.delete()
@@ -114,7 +112,9 @@ class CommentLikeCreateMutation(graphene.Mutation):
         try:
             comment = Comment.objects.get(id=comment_id)
             user = User.objects.get(id=user_id)
-            comment_like = CommentLike.objects.get_or_create(comment=comment, user=user)
+            comment_like, created = CommentLike.objects.get_or_create(
+                comment=comment, user=user
+            )
             return CommentLikeCreateMutation(like=comment_like)
         except User.DoesNotExist:
             raise GraphQLError("User not found")
@@ -126,19 +126,15 @@ class CommentLikeRemoveMutation(graphene.Mutation):
     success = graphene.Boolean()
 
     class Arguments:
-        comment_id = graphene.Int(required=True)
-        user_id = graphene.Int(required=True)
+        like_id = graphene.Int(required=True)
 
-    def mutate(self, info, comment_id, user_id):
+    def mutate(self, info, like_id):
         user = info.context.user
         if not user.is_authenticated:
             raise GraphQLError("User is not authenticated")
 
         try:
-            user = User.objects.get(id=user_id)
-            comment_like = CommentLike.objects.get(
-                comment__id=comment_id, user__id=user_id
-            )
+            comment_like = CommentLike.objects.get(id=like_id)
             if user != comment_like.user:
                 raise GraphQLError("Bad Request. User has not liked this post")
             comment_like.delete()
