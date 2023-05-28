@@ -4,19 +4,13 @@ from django.utils.text import slugify
 
 
 class Post(models.Model):
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
     title = models.CharField(max_length=255)
     slug = models.SlugField(unique=True)
     content = models.TextField()
-    tags = models.ManyToManyField('Tag')
+    tags = models.ManyToManyField("Tag")
     published = models.BooleanField(default=False)
-    category = models.ForeignKey(
-        'Category',
-        on_delete=models.SET_NULL, null=True
-    )
+    category = models.ForeignKey("Category", on_delete=models.SET_NULL, null=True)
     comments_enabled = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     is_archived = models.BooleanField(default=False)
@@ -35,7 +29,6 @@ class Post(models.Model):
     class Meta:
         verbose_name = "Post"
         verbose_name_plural = "Posts"
-
 
     def __str__(self):
         return self.title

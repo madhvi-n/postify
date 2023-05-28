@@ -7,10 +7,11 @@ import graphene
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 
+
 class UserType(DjangoObjectType):
     class Meta:
         model = User
-        fields = ('id', 'username', 'first_name', 'last_name', 'email')
+        fields = ("id", "username", "first_name", "last_name", "email")
 
 
 class Query(graphene.ObjectType):
@@ -34,7 +35,7 @@ class CreateUserMutation(graphene.Mutation):
         try:
             user_exists = User.objects.filter(email=email).exists()
             if user_exists:
-                raise GraphQLError('User with this email already exists')
+                raise GraphQLError("User with this email already exists")
 
             # Validate the password using Django's password validation
             validate_password(password)
@@ -53,7 +54,7 @@ class CreateUserMutation(graphene.Mutation):
             raise GraphQLError(e.messages[0])
 
         except Exception as e:
-            raise GraphQLError('Failed to create user')
+            raise GraphQLError("Failed to create user")
 
 
 class LoginUserMutation(graphene.Mutation):
@@ -68,10 +69,10 @@ class LoginUserMutation(graphene.Mutation):
             validate_password(password)
             user = authenticate(email=email, password=password)
             if user is None:
-                raise GraphQLError('Invalid email or password')
+                raise GraphQLError("Invalid email or password")
 
             if not user.is_active:
-                raise GraphQLError('User account is disabled')
+                raise GraphQLError("User account is disabled")
 
             login(info.context, user)
             return LoginUserMutation(user=user)
@@ -82,5 +83,6 @@ class LoginUserMutation(graphene.Mutation):
 class Mutation(graphene.ObjectType):
     create_user = CreateUserMutation.Field()
     login_user = LoginUserMutation.Field()
+
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
