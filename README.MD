@@ -9,6 +9,8 @@ A Django application to create posts which utilizes Graphql
 - Users can create, edit, and delete comments on posts.
 - Users can archive a post.
 - Users can feature a post.
+- User can like a post.
+- User can like a comment.
 - Users can disable comments on their posts.
 - Users can add categories to their posts.
 - Users can add tags to their posts.
