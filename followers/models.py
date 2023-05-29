@@ -18,9 +18,7 @@ class UserFollower(models.Model):
         verbose_name_plural = "User Followers"
 
     def __str__(self):
-        return (
-            f"{self.follower.username} started following {self.followed_user.username}"
-        )
+        return f"{self.follower.username} is following {self.followed_user.username}"
 
 
 class UserTag(models.Model):
@@ -36,4 +34,4 @@ class UserTag(models.Model):
         verbose_name_plural = "User Tags"
 
     def __str__(self):
-        return f"{self.follower.username} started following {self.tag.name}"
+        return f"{self.follower.username} is following {self.tag.name}"

@@ -43,6 +43,7 @@ class Query(graphene.ObjectType):
     user_tag_follower_count = graphene.Int(tag_id=graphene.Int(required=True))
     user_follower_count = graphene.Int(user_id=graphene.Int(required=True))
     posts_by_followed_tags = graphene.List(PostType)
+    user_feed = graphene.List(PostType)
 
     def resolve_user_tag_follower_count(self, info, tag_id):
         return UserTag.objects.filter(tag__id=tag_id).count()
@@ -57,6 +58,17 @@ class Query(graphene.ObjectType):
         followed_tags = user.user_tags.values_list("tag", flat=True)
         posts = Post.objects.filter(tags__in=followed_tags)
         return posts
+
+    def resolve_user_feed(self, info):
+        user = info.context.user
+        if not user.is_authenticated:
+            raise GraphQLError("User is not authenticated")
+        followed_tags = user.user_tags.values_list("tag", flat=True)
+        followers = user.followers.values_list("followed_user", flat=True)
+        user_feed = Post.objects.filter(
+            Q(author__in=followers) | Q(tags__in=followed_tags)
+        ).order_by("-created_at")
+        return user_feed
 
 
 class FollowUserMutation(graphene.Mutation):
