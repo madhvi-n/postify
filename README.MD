@@ -1,5 +1,5 @@
 # Postify
-[![Django CI](https://github.com/madhvi-n/postify/actions/workflows/django.yml/badge.svg)](https://github.com/madhvi-n/postify/actions/workflows/django.yml)
+[![Django CI](https://github.com/madhvi-n/postify/actions/workflows/django.yml/badge.svg?branch=main)](https://github.com/madhvi-n/postify/actions/workflows/django.yml)[![Python](https://img.shields.io/badge/Python-3.11-blue)](https://www.python.org/) [![Django](https://img.shields.io/badge/Django-5.1-brightgreen?style=flat&logo=django&logoColor=white)](https://www.djangoproject.com/) [![Django Rest Framework](https://img.shields.io/badge/Django_Rest_Framework-3.15-red)](https://www.django-rest-framework.org/)
 
 A Django application to create posts which utilizes Graphql
 
